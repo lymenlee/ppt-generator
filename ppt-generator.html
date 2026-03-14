@@ -1,0 +1,1983 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>科技风 PPT 生成器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+/* ==============================
+   CSS CUSTOM PROPERTIES
+   ============================== */
+:root {
+  --bg-primary:    #070d1a;
+  --bg-secondary:  #0e1829;
+  --bg-card:       #111d2e;
+  --bg-input:      #0a1220;
+  --accent:        #38bdf8;
+  --accent-2:      #818cf8;
+  --accent-glow:   rgba(56, 189, 248, 0.22);
+  --accent-glow-2: rgba(129, 140, 248, 0.15);
+  --text-primary:  #e2e8f0;
+  --text-secondary:#7d9ab5;
+  --text-muted:    #3d5269;
+  --border-color:  rgba(56, 189, 248, 0.15);
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --orb-1:         rgba(56, 189, 248, 0.12);
+  --orb-2:         rgba(129, 140, 248, 0.10);
+  --orb-3:         rgba(20, 184, 166, 0.08);
+  --shadow-slide:  0 30px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(56,189,248,0.1);
+  --font-main:     'Inter', 'Noto Sans SC', sans-serif;
+  --font-mono:     'JetBrains Mono', monospace;
+}
+
+[data-theme="light"] {
+  --bg-primary:    #f0f4f8;
+  --bg-secondary:  #e2eaf3;
+  --bg-card:       #ffffff;
+  --bg-input:      #e8eef7;
+  --accent:        #0284c7;
+  --accent-2:      #6366f1;
+  --accent-glow:   rgba(2, 132, 199, 0.15);
+  --accent-glow-2: rgba(99, 102, 241, 0.10);
+  --text-primary:  #0f172a;
+  --text-secondary:#4a6080;
+  --text-muted:    #94a3b8;
+  --border-color:  rgba(2, 132, 199, 0.22);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --orb-1:         rgba(2, 132, 199, 0.08);
+  --orb-2:         rgba(99, 102, 241, 0.06);
+  --orb-3:         rgba(20, 184, 166, 0.05);
+  --shadow-slide:  0 30px 80px rgba(0,0,0,0.2), 0 0 0 1px rgba(2,132,199,0.15);
+}
+
+/* ==============================
+   RESET + BASE
+   ============================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-main);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background 0.4s, color 0.4s;
+}
+
+/* ==============================
+   AMBIENT ORBS
+   ============================== */
+#ambient-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  animation: orbDrift linear infinite;
+}
+.orb-1 { width: 500px; height: 500px; top: -15%; left: -10%; background: var(--orb-1); animation-duration: 22s; }
+.orb-2 { width: 350px; height: 350px; top: 40%; right: -8%; background: var(--orb-2); animation-duration: 29s; animation-delay: -11s; }
+.orb-3 { width: 400px; height: 400px; bottom: -12%; left: 35%; background: var(--orb-3); animation-duration: 37s; animation-delay: -18s; }
+
+@keyframes orbDrift {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(30px, -20px); }
+  50%  { transform: translate(-15px, 35px); }
+  75%  { transform: translate(25px, 15px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* ==============================
+   APP LAYOUT
+   ============================== */
+#app { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100vh; }
+
+/* TOOLBAR */
+#toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  height: 52px;
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.brand { display: flex; align-items: center; gap: 0.6rem; }
+.brand-icon {
+  width: 24px; height: 24px;
+  border: 1.5px solid var(--accent);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+.brand-icon svg { width: 14px; height: 14px; stroke: var(--accent); fill: none; }
+.brand-name { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-secondary); letter-spacing: 0.05em; }
+.brand-name span { color: var(--accent); }
+.toolbar-actions { display: flex; align-items: center; gap: 0.5rem; }
+.btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.35rem 0.75rem; border-radius: 5px;
+  font-size: 0.75rem; font-family: var(--font-main); cursor: pointer;
+  transition: all 0.2s; border: 1px solid var(--border-subtle);
+  background: transparent; color: var(--text-secondary); white-space: nowrap;
+}
+.btn:hover { background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary); }
+.btn-icon { font-size: 0.85rem; }
+.btn--accent {
+  background: var(--accent); color: var(--bg-primary);
+  border-color: var(--accent); font-weight: 600;
+}
+.btn--accent:hover { filter: brightness(1.1); color: var(--bg-primary); }
+
+/* MAIN AREA */
+#main { display: flex; flex: 1; overflow: hidden; }
+
+/* EDITOR PANEL */
+#editor-panel {
+  width: 300px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  background: var(--bg-secondary); border-right: 1px solid var(--border-subtle); overflow: hidden;
+}
+.editor-header { padding: 0.875rem 1rem 0.625rem; border-bottom: 1px solid var(--border-subtle); }
+.editor-label { font-family: var(--font-mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); }
+#content-input {
+  flex: 1; resize: none; background: var(--bg-input); color: var(--text-primary);
+  border: none; outline: none; font-family: var(--font-mono); font-size: 0.72rem;
+  line-height: 1.7; padding: 0.875rem 1rem; caret-color: var(--accent); transition: background 0.3s;
+}
+#content-input::placeholder { color: var(--text-muted); }
+#content-input:focus { background: var(--bg-card); }
+.editor-footer { padding: 0.75rem 1rem; border-top: 1px solid var(--border-subtle); }
+#generate-btn {
+  width: 100%; padding: 0.6rem 1rem; background: var(--accent); color: var(--bg-primary);
+  border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
+  font-family: var(--font-main); cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em;
+}
+#generate-btn:hover { filter: brightness(1.15); transform: translateY(-1px); box-shadow: 0 4px 16px var(--accent-glow); }
+#generate-btn:active { transform: translateY(0); filter: brightness(0.95); }
+
+/* PREVIEW AREA */
+#preview-area {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 1.5rem; overflow: hidden; gap: 1rem;
+}
+
+/* SLIDE VIEWPORT */
+#slide-viewport {
+  width: 360px; height: 640px; position: relative;
+  border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-slide);
+  transform-origin: center center; flex-shrink: 0;
+}
+#slides-container { position: relative; width: 100%; height: 100%; }
+
+/* NAV DOTS */
+#nav-dots { display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; min-height: 16px; }
+.nav-dot {
+  height: 6px; width: 6px; border-radius: 3px;
+  background: var(--text-muted); border: none; cursor: pointer;
+  transition: width 0.3s ease, background 0.3s ease; padding: 0;
+}
+.nav-dot.active { width: 22px; background: var(--accent); }
+
+/* ==============================
+   SLIDES — BASE
+   ============================== */
+.slide {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  padding: 2.25rem 2rem; opacity: 0; pointer-events: none;
+  transform: translateY(16px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  background: var(--bg-primary); font-family: var(--font-main); overflow: hidden;
+}
+.slide.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+
+/* ==============================
+   SLIDE — COVER  (all backgrounds now use CSS vars)
+   ============================== */
+.slide--cover {
+  background: linear-gradient(160deg, var(--bg-primary) 0%, var(--bg-secondary) 45%, var(--bg-primary) 100%);
+  justify-content: flex-end;
+  padding-bottom: 3rem;
+}
+.slide--cover .cover-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 30% 20%, var(--accent-glow) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 80% 70%, var(--accent-glow-2) 0%, transparent 70%);
+}
+.slide--cover .cover-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.slide--cover .corner-tl,
+.slide--cover .corner-br { position: absolute; width: 28px; height: 28px; }
+.slide--cover .corner-tl { top: 1.5rem; left: 1.5rem; border-top: 1.5px solid var(--accent); border-left: 1.5px solid var(--accent); }
+.slide--cover .corner-br { bottom: 1.5rem; right: 1.5rem; border-bottom: 1.5px solid var(--accent); border-right: 1.5px solid var(--accent); }
+.slide--cover .cover-content { position: relative; z-index: 1; }
+.slide--cover .cover-eyebrow {
+  font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.slide--cover .cover-eyebrow::before {
+  content: ''; display: inline-block; width: 20px; height: 1px; background: var(--accent);
+}
+.slide--cover .cover-title {
+  font-size: 2rem; font-weight: 700; line-height: 1.2;
+  color: var(--text-primary); margin-bottom: 0.875rem;
+  text-shadow: 0 0 40px var(--accent-glow); letter-spacing: -0.02em;
+}
+.slide--cover .cover-subtitle { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
+.slide--cover .cover-date {
+  margin-top: 1.75rem; font-family: var(--font-mono); font-size: 0.62rem;
+  color: var(--accent); letter-spacing: 0.1em; padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border-color); border-radius: 3px;
+  display: inline-block; background: var(--accent-glow);
+}
+.slide--cover .cover-scanline {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: scanline 4s ease-in-out infinite; opacity: 0;
+}
+@keyframes scanline {
+  0%   { transform: translateY(0); opacity: 0; }
+  5%   { opacity: 0.6; }
+  95%  { opacity: 0.6; }
+  100% { transform: translateY(639px); opacity: 0; }
+}
+
+/* ==============================
+   SLIDE — TITLE (Chapter)
+   ============================== */
+.slide--title {
+  justify-content: center;
+  background: linear-gradient(170deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+.slide--title .title-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 80% 50%, var(--accent-glow) 0%, transparent 70%);
+}
+.slide--title .chapter-num-large {
+  position: absolute; right: -0.5rem; top: 50%; transform: translateY(-50%);
+  font-family: var(--font-mono); font-size: 8rem; font-weight: 700;
+  color: var(--accent); opacity: 0.06; line-height: 1;
+  pointer-events: none; user-select: none;
+}
+.slide--title .chapter-badge {
+  position: relative; font-family: var(--font-mono); font-size: 0.62rem;
+  letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent);
+  margin-bottom: 1.25rem; display: inline-flex; align-items: center; gap: 0.75rem;
+}
+.slide--title .chapter-badge::after {
+  content: ''; display: block; height: 1px; width: 40px; background: var(--accent); opacity: 0.6;
+}
+.slide--title .accent-bar {
+  width: 36px; height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 1px; margin-bottom: 1.25rem;
+}
+.slide--title .chapter-title {
+  position: relative; font-size: 1.75rem; font-weight: 700;
+  line-height: 1.25; color: var(--text-primary); letter-spacing: -0.02em; margin-bottom: 1.25rem;
+}
+.slide--title .chapter-desc { font-size: 0.875rem; line-height: 1.75; color: var(--text-secondary); position: relative; }
+
+/* ==============================
+   SLIDE — QUOTE
+   ============================== */
+.slide--quote {
+  justify-content: center;
+  background: linear-gradient(160deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+.slide--quote .quote-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 20% 60%, var(--accent-glow-2) 0%, transparent 70%);
+}
+.slide--quote .quote-mark {
+  position: relative; font-size: 5rem; line-height: 1;
+  color: var(--accent); opacity: 0.25; font-family: Georgia, serif;
+  margin-bottom: -1.5rem; display: block;
+}
+.slide--quote blockquote {
+  position: relative; font-size: 1.05rem; line-height: 1.85;
+  color: var(--text-primary); font-style: italic;
+  border-left: 2px solid var(--accent); padding-left: 1.25rem; margin: 0 0 1.5rem;
+}
+.slide--quote cite {
+  display: block; font-style: normal; font-family: var(--font-mono);
+  font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent); padding-left: 1.25rem;
+}
+.slide--quote cite::before { content: '— '; }
+
+/* ==============================
+   SLIDE — STEPS
+   ============================== */
+.slide--steps {
+  background: linear-gradient(170deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+.slide--steps .steps-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 90% 10%, var(--accent-glow) 0%, transparent 70%);
+}
+.slide--steps .steps-header { position: relative; margin-bottom: 1.5rem; }
+.slide--steps .steps-label {
+  font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.4rem;
+}
+.slide--steps .steps-title { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
+.slide--steps .steps-list { position: relative; list-style: none; display: flex; flex-direction: column; gap: 0; }
+.slide--steps .step-item {
+  display: flex; align-items: flex-start; gap: 0.875rem;
+  padding: 0.75rem 0; border-bottom: 1px solid var(--border-subtle);
+  opacity: 0; transform: translateX(-8px); animation: stepIn 0.4s ease forwards;
+}
+.slide--steps .step-item:last-child { border-bottom: none; }
+@keyframes stepIn { to { opacity: 1; transform: translateX(0); } }
+.slide--steps .step-number {
+  font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent);
+  background: var(--accent-glow); border: 1px solid var(--border-color);
+  border-radius: 3px; width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+}
+.slide--steps .step-content { font-size: 0.875rem; line-height: 1.5; color: var(--text-primary); }
+
+/* ==============================
+   SLIDE — ENDING
+   ============================== */
+.slide--ending {
+  justify-content: center; align-items: center; text-align: center;
+  background: linear-gradient(160deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+.slide--ending .ending-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 40%, var(--accent-glow) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 20% 80%, var(--accent-glow-2) 0%, transparent 70%);
+}
+.slide--ending .ending-ring {
+  position: absolute; width: 280px; height: 280px;
+  border: 1px solid var(--border-color); border-radius: 50%;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.slide--ending .ending-ring-2 {
+  position: absolute; width: 200px; height: 200px;
+  border: 1px solid var(--border-subtle); border-radius: 50%;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.slide--ending .ending-content { position: relative; z-index: 1; }
+.slide--ending .ending-message {
+  font-size: 1.6rem; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 1rem; letter-spacing: -0.02em; text-shadow: 0 0 40px var(--accent-glow);
+}
+.slide--ending .ending-divider { width: 32px; height: 1px; background: var(--accent); margin: 0 auto 1rem; opacity: 0.6; }
+.slide--ending .ending-contact {
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent);
+  letter-spacing: 0.08em; margin-bottom: 0.4rem;
+}
+.slide--ending .ending-extra { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; }
+.slide--ending .qr-placeholder {
+  width: 72px; height: 72px; border: 1px dashed var(--border-color);
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  margin: 1rem auto 0; font-size: 0.55rem; color: var(--text-muted);
+  font-family: var(--font-mono); letter-spacing: 0.05em;
+}
+.slide--ending .qr-image { width: 72px; height: 72px; object-fit: contain; border-radius: 4px; margin: 1rem auto 0; display: block; }
+
+/* ==============================
+   ENTRANCE ANIMATIONS
+   ============================== */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.slide.active .cover-eyebrow  { animation: fadeInUp 0.5s ease 0.10s both; }
+.slide.active .cover-title    { animation: fadeInUp 0.5s ease 0.20s both; }
+.slide.active .cover-subtitle { animation: fadeInUp 0.5s ease 0.30s both; }
+.slide.active .cover-date     { animation: fadeInUp 0.5s ease 0.40s both; }
+.slide.active .chapter-badge  { animation: fadeInUp 0.5s ease 0.05s both; }
+.slide.active .accent-bar     { animation: fadeInUp 0.5s ease 0.10s both; }
+.slide.active .chapter-title  { animation: fadeInUp 0.5s ease 0.15s both; }
+.slide.active .chapter-desc   { animation: fadeInUp 0.5s ease 0.25s both; }
+.slide.active .quote-mark     { animation: fadeInUp 0.5s ease 0.00s both; }
+.slide.active blockquote      { animation: fadeInUp 0.5s ease 0.10s both; }
+.slide.active cite            { animation: fadeInUp 0.5s ease 0.22s both; }
+.slide.active .steps-header   { animation: fadeInUp 0.5s ease 0.05s both; }
+.slide.active .ending-content { animation: fadeInUp 0.5s ease 0.10s both; }
+
+/* ==============================
+   EMPTY STATE
+   ============================== */
+.slide--empty { justify-content: center; align-items: center; text-align: center; }
+.empty-hint { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.1em; line-height: 2; }
+
+/* ==============================
+   STYLE LIBRARY MODAL
+   ============================== */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 2rem;
+  animation: modalFadeIn 0.2s ease;
+}
+.modal-overlay[hidden] { display: none; }
+@keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  width: 100%; max-width: 700px;
+  max-height: 82vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+  animation: modalSlideIn 0.25s ease;
+}
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translateY(-12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.25rem 0.875rem;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.modal-title {
+  font-family: var(--font-mono); font-size: 0.8rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--text-primary);
+}
+.modal-close {
+  width: 28px; height: 28px; border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: transparent; color: var(--text-muted);
+  cursor: pointer; font-size: 0.9rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.modal-close:hover { background: var(--bg-secondary); color: var(--text-primary); }
+
+/* API Key section */
+.api-key-section {
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.api-key-label {
+  font-family: var(--font-mono); font-size: 0.6rem;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-muted); margin-bottom: 0.5rem;
+}
+.api-key-row { display: flex; gap: 0.5rem; align-items: center; }
+.api-key-input {
+  flex: 1; background: var(--bg-input); color: var(--text-primary);
+  border: 1px solid var(--border-subtle); border-radius: 5px;
+  padding: 0.45rem 0.75rem; font-family: var(--font-mono); font-size: 0.72rem;
+  outline: none; transition: border-color 0.2s;
+}
+.api-key-input:focus { border-color: var(--border-color); }
+.api-key-input::placeholder { color: var(--text-muted); }
+#ai-generate-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.45rem 1rem; border-radius: 5px; cursor: pointer;
+  font-size: 0.75rem; font-family: var(--font-main); font-weight: 600;
+  background: var(--accent); color: var(--bg-primary); border: none;
+  transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+}
+#ai-generate-btn:hover { filter: brightness(1.1); }
+#ai-generate-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: none; }
+.api-error { font-size: 0.7rem; color: #f87171; margin-top: 0.4rem; font-family: var(--font-mono); }
+.api-error:empty { display: none; }
+
+/* Spinner */
+.spinner {
+  width: 12px; height: 12px;
+  border: 2px solid rgba(0,0,0,0.3);
+  border-top-color: var(--bg-primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Style Cards Grid */
+.modal-body {
+  flex: 1; overflow-y: auto; padding: 1rem 1.25rem 1.25rem;
+  scrollbar-width: thin; scrollbar-color: var(--text-muted) transparent;
+}
+.style-section-label {
+  font-family: var(--font-mono); font-size: 0.6rem;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-muted); margin-bottom: 0.75rem;
+}
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.style-card {
+  background: var(--bg-secondary); border: 1px solid var(--border-subtle);
+  border-radius: 8px; padding: 0.875rem;
+  cursor: pointer; transition: all 0.2s; position: relative;
+}
+.style-card:hover { border-color: var(--border-color); transform: translateY(-1px); }
+.style-card.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), inset 0 0 0 1px var(--accent-glow);
+}
+.style-card.active::after {
+  content: '✓';
+  position: absolute; top: 0.5rem; right: 0.5rem;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--accent); color: var(--bg-primary);
+  font-size: 0.6rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.style-swatches {
+  display: flex; gap: 4px; margin-bottom: 0.625rem;
+}
+.swatch {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0;
+}
+.style-name {
+  font-size: 0.8rem; font-weight: 600; color: var(--text-primary);
+  margin-bottom: 0.2rem; line-height: 1.2;
+}
+.style-desc {
+  font-size: 0.67rem; color: var(--text-secondary); line-height: 1.4; margin-bottom: 0.625rem;
+}
+.style-mood {
+  font-family: var(--font-mono); font-size: 0.6rem;
+  color: var(--text-muted); letter-spacing: 0.05em;
+}
+.style-apply-btn {
+  width: 100%; margin-top: 0.625rem; padding: 0.35rem;
+  border-radius: 4px; border: 1px solid var(--border-color);
+  background: transparent; color: var(--accent);
+  font-size: 0.7rem; font-family: var(--font-main); cursor: pointer;
+  transition: all 0.15s;
+}
+.style-apply-btn:hover { background: var(--accent-glow); }
+.style-card.active .style-apply-btn {
+  background: var(--accent); color: var(--bg-primary); border-color: var(--accent);
+}
+.style-reset-btn {
+  display: block; width: 100%; text-align: center;
+  padding: 0.5rem; margin-top: 0.25rem; border-radius: 5px;
+  border: 1px dashed var(--border-subtle); background: transparent;
+  color: var(--text-muted); font-size: 0.72rem; font-family: var(--font-main);
+  cursor: pointer; transition: all 0.2s;
+}
+.style-reset-btn:hover { border-color: var(--border-color); color: var(--text-secondary); }
+
+/* Generated styles separator */
+.styles-divider { margin: 0.75rem 0 0.75rem; border: none; border-top: 1px solid var(--border-subtle); }
+
+/* ==============================
+   RATIO TOGGLE
+   ============================== */
+.ratio-toggle {
+  display: flex;
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.ratio-btn {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.7rem; font-family: var(--font-mono);
+  border: none; background: transparent; color: var(--text-muted);
+  cursor: pointer; transition: all 0.15s; letter-spacing: 0.05em;
+}
+.ratio-btn + .ratio-btn { border-left: 1px solid var(--border-subtle); }
+.ratio-btn.active { background: var(--accent-glow); color: var(--accent); }
+.ratio-btn:hover:not(.active) { background: var(--bg-card); color: var(--text-secondary); }
+.ratio-btn svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+/* ==============================
+   16:9 RATIO OVERRIDES
+   ============================== */
+
+/* Base slide padding for 16:9 */
+#slide-viewport[data-ratio="16-9"] .slide {
+  padding: 1.75rem 3.5rem;
+}
+
+/* Cover 16:9 – two-column with decorative right panel */
+#slide-viewport[data-ratio="16-9"] .slide--cover {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2.25rem 3.5rem;
+}
+#slide-viewport[data-ratio="16-9"] .slide--cover .cover-content {
+  flex: 1;
+}
+
+/* Decorative panel: hidden in 9:16, visible in 16:9 */
+.cover-deco-panel { display: none; }
+#slide-viewport[data-ratio="16-9"] .cover-deco-panel {
+  display: flex; flex: 0 0 36%;
+  align-items: center; justify-content: center;
+  position: relative; height: 100%;
+}
+.cover-deco-lines {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: 0.6;
+}
+.cover-deco-ring {
+  width: 180px; height: 180px;
+  border: 1px solid var(--border-color);
+  border-radius: 50%; position: absolute;
+}
+.cover-deco-ring-2 {
+  width: 115px; height: 115px;
+  border: 1.5px solid var(--accent-glow);
+  border-radius: 50%; position: absolute;
+}
+.cover-deco-dot {
+  width: 10px; height: 10px;
+  background: var(--accent); border-radius: 50%; position: absolute;
+  box-shadow: 0 0 20px var(--accent), 0 0 6px var(--accent);
+}
+
+/* Title 16:9 – larger ghost number, more breathing room */
+#slide-viewport[data-ratio="16-9"] .slide--title .chapter-num-large { font-size: 11rem; }
+#slide-viewport[data-ratio="16-9"] .slide--title .chapter-title { font-size: 2.1rem; }
+
+/* Quote 16:9 – larger quote mark and text */
+#slide-viewport[data-ratio="16-9"] .slide--quote .quote-mark { font-size: 6rem; }
+#slide-viewport[data-ratio="16-9"] .slide--quote blockquote { font-size: 1.2rem; }
+
+/* Steps 16:9 – two-column grid */
+#slide-viewport[data-ratio="16-9"] .slide--steps { padding: 1.75rem 3rem; }
+#slide-viewport[data-ratio="16-9"] .slide--steps .steps-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 2rem;
+}
+#slide-viewport[data-ratio="16-9"] .slide--steps .step-item:last-child {
+  border-bottom: none;
+}
+
+/* Ending 16:9 – slightly scaled up */
+#slide-viewport[data-ratio="16-9"] .slide--ending .ending-message { font-size: 2rem; }
+#slide-viewport[data-ratio="16-9"] .slide--ending .ending-ring { width: 320px; height: 320px; }
+#slide-viewport[data-ratio="16-9"] .slide--ending .ending-ring-2 { width: 220px; height: 220px; }
+
+/* ==============================
+   PRINT STYLES
+   ============================== */
+@media print {
+  #ambient-layer, #toolbar, #editor-panel, #nav-dots, #style-modal { display: none !important; }
+  #app { display: block; }
+  #main { display: block; }
+  #preview-area { width: 100vw; height: 100vh; padding: 0; display: block; }
+  #slide-viewport { width: 100vw; height: 100vh; transform: none !important; border-radius: 0; box-shadow: none; }
+  .slide { position: relative !important; width: 100vw; height: 100vh; opacity: 1 !important; transform: none !important; page-break-after: always; pointer-events: auto !important; }
+  #slides-container { height: auto; }
+}
+</style>
+</head>
+<body>
+
+<div id="ambient-layer" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div id="app">
+  <header id="toolbar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="5" height="5" stroke-width="1.5"/>
+          <rect x="8" y="1" width="5" height="5" stroke-width="1.5"/>
+          <rect x="1" y="8" width="5" height="5" stroke-width="1.5"/>
+          <rect x="8" y="8" width="5" height="5" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <span class="brand-name" id="brand-name"><span>科技风</span> PPT 生成器</span>
+    </div>
+    <div class="toolbar-actions">
+      <button class="btn btn--accent" id="style-library-btn">🎨 样式库</button>
+      <div class="ratio-toggle" role="group" aria-label="幻灯片比例">
+        <button class="ratio-btn active" data-ratio="9-16" title="竖屏 9:16（手机）">
+          <svg viewBox="0 0 10 16"><rect x="1" y="1" width="8" height="14" rx="1"/></svg>9:16
+        </button>
+        <button class="ratio-btn" data-ratio="16-9" title="横屏 16:9（电脑）">
+          <svg viewBox="0 0 16 10"><rect x="1" y="1" width="14" height="8" rx="1"/></svg>16:9
+        </button>
+      </div>
+      <button class="btn" id="theme-toggle" aria-pressed="false"><span class="btn-icon">☀️</span> 浅色</button>
+      <button class="btn" id="print-btn"><span class="btn-icon">🖨️</span> 打印</button>
+      <button class="btn" id="export-btn"><span class="btn-icon">⬇️</span> 下载 HTML</button>
+      <button class="btn" id="lang-toggle" aria-label="Switch language" title="Switch language / 切换语言">EN</button>
+    </div>
+  </header>
+
+  <div id="main">
+    <aside id="editor-panel">
+      <div class="editor-header">
+        <div class="editor-label" id="editor-label">内容输入</div>
+      </div>
+      <textarea
+        id="content-input"
+        spellcheck="false"
+        aria-label="演示文稿内容"
+        placeholder="封面标题：你的标题&#10;副标题：副标题&#10;日期：2026 年 3 月&#10;&#10;第一章：章节标题&#10;章节描述内容..."></textarea>
+      <div class="editor-footer">
+        <button id="generate-btn">生成演示文稿</button>
+      </div>
+    </aside>
+
+    <main id="preview-area" role="region" aria-label="幻灯片预览">
+      <div id="slide-viewport" aria-live="polite">
+        <div id="slides-container"></div>
+      </div>
+      <div id="nav-dots" role="tablist" aria-label="幻灯片导航"></div>
+    </main>
+  </div>
+</div>
+
+<!-- ===== STYLE LIBRARY MODAL ===== -->
+<div id="style-modal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-label="样式库">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">🎨 样式库</span>
+      <button class="modal-close" id="style-modal-close" aria-label="关闭">✕</button>
+    </div>
+
+    <div class="api-key-section">
+      <div class="api-key-label" id="api-key-label">Gemini 2.5 Flash · 用 AI 生成新样式</div>
+      <div class="api-key-row">
+        <input type="password" id="gemini-api-key" class="api-key-input"
+          placeholder="输入 Gemini API Key (Google AI Studio)" autocomplete="off" />
+        <button id="ai-generate-btn">✨ 生成样式</button>
+      </div>
+      <div id="api-error" class="api-error"></div>
+    </div>
+
+    <div class="modal-body">
+      <div class="style-section-label" id="builtin-style-label">内置样式</div>
+      <div id="builtin-style-grid" class="style-grid"></div>
+
+      <div id="generated-section" style="display:none">
+        <hr class="styles-divider">
+        <div class="style-section-label" id="generated-style-label">AI 生成样式</div>
+        <div id="generated-style-grid" class="style-grid"></div>
+        <button class="style-reset-btn" id="clear-generated-btn">🗑 清除所有 AI 样式</button>
+      </div>
+
+      <hr class="styles-divider">
+      <button class="style-reset-btn" id="reset-style-btn">↩ 重置为默认样式</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  STATE
+// ============================================================
+const state = {
+  currentSlide: 0,
+  slidesData: [],
+  theme: 'dark',
+  ratio: '9-16',       // '9-16' | '16-9'
+  activeStyleId: 'dark-tech',
+  lang: 'zh',          // 'zh' | 'en'
+  touchStartX: 0,
+  touchStartY: 0,
+  touchStartTime: 0,
+  isHorizontalSwipe: null,
+};
+
+// ============================================================
+//  UTILITIES
+// ============================================================
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function chineseNumToArabic(cn) {
+  const map = { '一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10,'十一':11,'十二':12,'十三':13,'十四':14,'十五':15 };
+  return map[cn] !== undefined ? map[cn] : cn;
+}
+
+// ============================================================
+//  I18N
+// ============================================================
+const I18N = {
+  zh: {
+    brandName: '<span>科技风</span> PPT 生成器',
+    styleLibrary: '🎨 样式库',
+    lightMode: '☀️ 浅色',
+    darkMode: '🌙 深色',
+    print: '🖨️ 打印',
+    exportHtml: '⬇️ 下载 HTML',
+    portrait: '竖屏 9:16（手机）',
+    landscape: '横屏 16:9（电脑）',
+    editorLabel: '内容输入',
+    generateBtn: '生成演示文稿',
+    previewAriaLabel: '幻灯片预览',
+    navAriaLabel: '幻灯片导航',
+    modalTitle: '🎨 样式库',
+    modalAriaLabel: '样式库',
+    modalClose: '关闭',
+    apiKeyLabel: 'Gemini 2.5 Flash · 用 AI 生成新样式',
+    apiKeyPlaceholder: '输入 Gemini API Key (Google AI Studio)',
+    aiGenerateBtn: '✨ 生成样式',
+    aiGenerating: '<div class="spinner"></div> 生成中...',
+    builtinStyles: '内置样式',
+    aiGeneratedStyles: 'AI 生成样式',
+    clearAiStyles: '🗑 清除所有 AI 样式',
+    resetStyle: '↩ 重置为默认样式',
+    inputPlaceholder: '封面标题：你的标题\n副标题：副标题\n日期：2026 年 3 月\n\n第一章：章节标题\n章节描述内容...',
+    slideLabel: (n) => `第 ${n} 页`,
+    coverLabel: '封面',
+    chapterBadge: (n) => `第${n}章`,
+    chapterAriaLabel: (n) => `第${n}章`,
+    quoteLabel: '引用',
+    stepsLabel: '步骤',
+    stepsListLabel: '步骤列表',
+    endingLabel: '结束',
+    navDotLabel: (n) => `跳转到第 ${n} 页`,
+    emptyHint: '在左侧输入内容<br>点击「生成演示文稿」',
+    noApiKey: '请先输入 Gemini API Key',
+    errorPrefix: '错误：',
+    geminiEmpty: 'Gemini 返回空响应',
+    jsonParseError: '无法解析 Gemini 返回的 JSON',
+    schemaError: 'Gemini 返回的样式格式不完整',
+    applied: '✓ 已应用',
+    apply: '应用',
+    langToggle: 'EN',
+  },
+  en: {
+    brandName: '<span>TechSlide</span> PPT Generator',
+    styleLibrary: '🎨 Styles',
+    lightMode: '☀️ Light',
+    darkMode: '🌙 Dark',
+    print: '🖨️ Print',
+    exportHtml: '⬇️ Export HTML',
+    portrait: 'Portrait 9:16 (Mobile)',
+    landscape: 'Landscape 16:9 (Desktop)',
+    editorLabel: 'Content Input',
+    generateBtn: 'Generate Slides',
+    previewAriaLabel: 'Slide Preview',
+    navAriaLabel: 'Slide Navigation',
+    modalTitle: '🎨 Style Library',
+    modalAriaLabel: 'Style Library',
+    modalClose: 'Close',
+    apiKeyLabel: 'Gemini 2.5 Flash · Generate new styles with AI',
+    apiKeyPlaceholder: 'Enter Gemini API Key (Google AI Studio)',
+    aiGenerateBtn: '✨ Generate Style',
+    aiGenerating: '<div class="spinner"></div> Generating...',
+    builtinStyles: 'Built-in Styles',
+    aiGeneratedStyles: 'AI-Generated Styles',
+    clearAiStyles: '🗑 Clear All AI Styles',
+    resetStyle: '↩ Reset to Default Style',
+    inputPlaceholder: 'Cover Title: Your Title\nSubtitle: Speaker or Subtitle\nDate: March 2026\n\nChapter 1: Chapter Title\nChapter description...',
+    slideLabel: (n) => `Slide ${n}`,
+    coverLabel: 'Cover',
+    chapterBadge: (n) => `Ch.${n}`,
+    chapterAriaLabel: (n) => `Chapter ${n}`,
+    quoteLabel: 'Quote',
+    stepsLabel: 'Steps',
+    stepsListLabel: 'Steps',
+    endingLabel: 'Ending',
+    navDotLabel: (n) => `Go to slide ${n}`,
+    emptyHint: 'Enter content on the left<br>Click "Generate Slides"',
+    noApiKey: 'Please enter a Gemini API Key first',
+    errorPrefix: 'Error: ',
+    geminiEmpty: 'Gemini returned an empty response',
+    jsonParseError: 'Failed to parse Gemini JSON response',
+    schemaError: 'Gemini returned incomplete style data',
+    applied: '✓ Applied',
+    apply: 'Apply',
+    langToggle: '中',
+  },
+};
+
+function t(key, ...args) {
+  const strings = I18N[state.lang] || I18N.zh;
+  const val = strings[key] ?? (I18N.zh[key] ?? key);
+  return typeof val === 'function' ? val(...args) : val;
+}
+
+// ============================================================
+//  BUILT-IN STYLES
+// ============================================================
+const BUILTIN_STYLES = [
+  {
+    id: 'dark-tech',
+    name: '科技深蓝', name_en: 'Deep Tech Blue',
+    description: '深邃的深空蓝，冷静的科技感', description_en: 'Deep space blue with a cool, tech aesthetic',
+    mood: '专业, 冷静, 未来', mood_en: 'Professional, Cool, Futuristic',
+    variables: {
+      '--bg-primary': '#070d1a', '--bg-secondary': '#0e1829',
+      '--bg-card': '#111d2e', '--bg-input': '#0a1220',
+      '--accent': '#38bdf8', '--accent-2': '#818cf8',
+      '--accent-glow': 'rgba(56,189,248,0.22)', '--accent-glow-2': 'rgba(129,140,248,0.15)',
+      '--text-primary': '#e2e8f0', '--text-secondary': '#7d9ab5', '--text-muted': '#3d5269',
+      '--border-color': 'rgba(56,189,248,0.15)', '--border-subtle': 'rgba(255,255,255,0.06)',
+      '--orb-1': 'rgba(56,189,248,0.12)', '--orb-2': 'rgba(129,140,248,0.10)', '--orb-3': 'rgba(20,184,166,0.08)',
+    },
+  },
+  {
+    id: 'minimal-light',
+    name: '极简白', name_en: 'Minimal White',
+    description: '干净通透的浅色系，清爽专业', description_en: 'Clean, bright light palette — fresh and professional',
+    mood: '清爽, 简洁, 专业', mood_en: 'Fresh, Clean, Professional',
+    variables: {
+      '--bg-primary': '#f8fafc', '--bg-secondary': '#f1f5f9',
+      '--bg-card': '#ffffff', '--bg-input': '#e8eef7',
+      '--accent': '#2563eb', '--accent-2': '#7c3aed',
+      '--accent-glow': 'rgba(37,99,235,0.12)', '--accent-glow-2': 'rgba(124,58,237,0.10)',
+      '--text-primary': '#0f172a', '--text-secondary': '#475569', '--text-muted': '#94a3b8',
+      '--border-color': 'rgba(37,99,235,0.18)', '--border-subtle': 'rgba(0,0,0,0.07)',
+      '--orb-1': 'rgba(37,99,235,0.07)', '--orb-2': 'rgba(124,58,237,0.05)', '--orb-3': 'rgba(20,184,166,0.04)',
+    },
+  },
+  {
+    id: 'neon-noir',
+    name: '霓虹暗夜', name_en: 'Neon Noir',
+    description: '赛博朋克风格，热烈的霓虹与深暗背景', description_en: 'Cyberpunk vibes — vivid neon on deep dark backgrounds',
+    mood: '大胆, 赛博, 炫目', mood_en: 'Bold, Cyber, Dazzling',
+    variables: {
+      '--bg-primary': '#0a0014', '--bg-secondary': '#130025',
+      '--bg-card': '#1a0030', '--bg-input': '#0d001a',
+      '--accent': '#ff2d78', '--accent-2': '#00e5ff',
+      '--accent-glow': 'rgba(255,45,120,0.25)', '--accent-glow-2': 'rgba(0,229,255,0.15)',
+      '--text-primary': '#ffe4f0', '--text-secondary': '#b87090', '--text-muted': '#6b3050',
+      '--border-color': 'rgba(255,45,120,0.18)', '--border-subtle': 'rgba(255,255,255,0.05)',
+      '--orb-1': 'rgba(255,45,120,0.12)', '--orb-2': 'rgba(0,229,255,0.10)', '--orb-3': 'rgba(180,0,255,0.08)',
+    },
+  },
+  {
+    id: 'warm-earth',
+    name: '暖色大地', name_en: 'Warm Earth',
+    description: '温暖的赭石与大地色，厚重而沉稳', description_en: 'Warm ochre and earth tones — grounded and steady',
+    mood: '温暖, 沉稳, 自然', mood_en: 'Warm, Grounded, Natural',
+    variables: {
+      '--bg-primary': '#1a0e08', '--bg-secondary': '#261508',
+      '--bg-card': '#2e1a0a', '--bg-input': '#1f1108',
+      '--accent': '#e87d3e', '--accent-2': '#d4a84b',
+      '--accent-glow': 'rgba(232,125,62,0.25)', '--accent-glow-2': 'rgba(212,168,75,0.15)',
+      '--text-primary': '#f5e6d0', '--text-secondary': '#b8937a', '--text-muted': '#6b4d35',
+      '--border-color': 'rgba(232,125,62,0.18)', '--border-subtle': 'rgba(255,255,255,0.05)',
+      '--orb-1': 'rgba(232,125,62,0.12)', '--orb-2': 'rgba(212,168,75,0.10)', '--orb-3': 'rgba(180,80,30,0.08)',
+    },
+  },
+  {
+    id: 'emerald-forest',
+    name: '翡翠森林', name_en: 'Emerald Forest',
+    description: '深邃的翠绿，清冽的自然气息', description_en: 'Deep emerald green with a crisp, natural feel',
+    mood: '清新, 生机, 静谧', mood_en: 'Fresh, Vibrant, Serene',
+    variables: {
+      '--bg-primary': '#041510', '--bg-secondary': '#071f17',
+      '--bg-card': '#0a2a1f', '--bg-input': '#051812',
+      '--accent': '#10b981', '--accent-2': '#34d399',
+      '--accent-glow': 'rgba(16,185,129,0.22)', '--accent-glow-2': 'rgba(52,211,153,0.15)',
+      '--text-primary': '#d1fae5', '--text-secondary': '#6ee7b7', '--text-muted': '#065f46',
+      '--border-color': 'rgba(16,185,129,0.18)', '--border-subtle': 'rgba(255,255,255,0.05)',
+      '--orb-1': 'rgba(16,185,129,0.12)', '--orb-2': 'rgba(52,211,153,0.10)', '--orb-3': 'rgba(6,95,70,0.12)',
+    },
+  },
+];
+
+// ============================================================
+//  STYLE STORAGE
+// ============================================================
+function loadGeneratedStyles() {
+  try {
+    return JSON.parse(localStorage.getItem('ppt-generated-styles') || '[]');
+  } catch { return []; }
+}
+
+function saveGeneratedStyles(styles) {
+  localStorage.setItem('ppt-generated-styles', JSON.stringify(styles));
+}
+
+// ============================================================
+//  APPLY / RESET STYLE
+// ============================================================
+function applyStyle(style) {
+  const root = document.documentElement;
+  Object.entries(style.variables).forEach(([k, v]) => root.style.setProperty(k, v));
+  state.activeStyleId = style.id;
+  localStorage.setItem('ppt-active-style', style.id);
+  renderStyleCards();
+}
+
+function resetStyle() {
+  const root = document.documentElement;
+  // Remove all inline CSS vars to fall back to stylesheet defaults
+  const varNames = [
+    '--bg-primary','--bg-secondary','--bg-card','--bg-input',
+    '--accent','--accent-2','--accent-glow','--accent-glow-2',
+    '--text-primary','--text-secondary','--text-muted',
+    '--border-color','--border-subtle','--orb-1','--orb-2','--orb-3',
+  ];
+  varNames.forEach(k => root.style.removeProperty(k));
+  state.activeStyleId = state.theme === 'light' ? 'minimal-light' : 'dark-tech';
+  localStorage.removeItem('ppt-active-style');
+  renderStyleCards();
+}
+
+// ============================================================
+//  STYLE CARD RENDERING
+// ============================================================
+function makeSwatches(vars) {
+  const keys = ['--bg-primary', '--bg-secondary', '--accent', '--accent-2', '--text-primary'];
+  return keys.map(k =>
+    `<div class="swatch" style="background:${vars[k] || '#888'}" title="${k}"></div>`
+  ).join('');
+}
+
+function makeStyleCard(style) {
+  const isActive = state.activeStyleId === style.id;
+  const card = document.createElement('div');
+  card.className = 'style-card' + (isActive ? ' active' : '');
+  card.dataset.styleId = style.id;
+  const isEn = state.lang === 'en';
+  const name = isEn && style.name_en ? style.name_en : style.name;
+  const desc = isEn && style.description_en ? style.description_en : style.description;
+  const mood = isEn && style.mood_en ? style.mood_en : style.mood;
+  card.innerHTML = `
+    <div class="style-swatches">${makeSwatches(style.variables)}</div>
+    <div class="style-name">${escapeHtml(name)}</div>
+    <div class="style-desc">${escapeHtml(desc)}</div>
+    <div class="style-mood">${escapeHtml(mood)}</div>
+    <button class="style-apply-btn">${isActive ? t('applied') : t('apply')}</button>
+  `;
+  card.querySelector('.style-apply-btn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    applyStyle(style);
+  });
+  card.addEventListener('click', () => applyStyle(style));
+  return card;
+}
+
+function renderStyleCards() {
+  const builtinGrid = document.getElementById('builtin-style-grid');
+  const generatedGrid = document.getElementById('generated-style-grid');
+  const generatedSection = document.getElementById('generated-section');
+  const generatedStyles = loadGeneratedStyles();
+
+  builtinGrid.innerHTML = '';
+  BUILTIN_STYLES.forEach(s => builtinGrid.appendChild(makeStyleCard(s)));
+
+  generatedGrid.innerHTML = '';
+  if (generatedStyles.length > 0) {
+    generatedSection.style.display = '';
+    generatedStyles.forEach(s => generatedGrid.appendChild(makeStyleCard(s)));
+  } else {
+    generatedSection.style.display = 'none';
+  }
+}
+
+// ============================================================
+//  MODAL MANAGEMENT
+// ============================================================
+function openStyleModal() {
+  const modal = document.getElementById('style-modal');
+  renderStyleCards();
+  modal.hidden = false;
+  modal.focus();
+}
+
+function closeStyleModal() {
+  document.getElementById('style-modal').hidden = true;
+}
+
+// ============================================================
+//  GEMINI 2.5 FLASH API
+// ============================================================
+const GEMINI_PROMPT = `You are a creative presentation theme designer. Generate a unique, visually striking slide deck color theme.
+
+Return ONLY valid JSON (no markdown, no code blocks, no explanation) matching this exact schema:
+{
+  "name": "Theme name in Chinese (2-4 chars preferred)",
+  "description": "One sentence describing the aesthetic in Chinese (max 20 chars)",
+  "mood": "Three Chinese adjectives separated by commas",
+  "variables": {
+    "--bg-primary": "#xxxxxx",
+    "--bg-secondary": "#xxxxxx",
+    "--bg-card": "#xxxxxx",
+    "--bg-input": "#xxxxxx",
+    "--accent": "#xxxxxx",
+    "--accent-2": "#xxxxxx",
+    "--accent-glow": "rgba(R,G,B,0.22)",
+    "--accent-glow-2": "rgba(R,G,B,0.15)",
+    "--text-primary": "#xxxxxx",
+    "--text-secondary": "#xxxxxx",
+    "--text-muted": "#xxxxxx",
+    "--border-color": "rgba(R,G,B,0.18)",
+    "--border-subtle": "rgba(R,G,B,0.06)",
+    "--orb-1": "rgba(R,G,B,0.12)",
+    "--orb-2": "rgba(R,G,B,0.10)",
+    "--orb-3": "rgba(R,G,B,0.08)"
+  }
+}
+
+Rules:
+- All hex colors must be valid 6-digit hex
+- text-primary must be highly readable against bg-primary (ensure contrast ratio >= 4.5)
+- Make it MEMORABLE and DISTINCT — avoid generic themes
+- Pick an unexpected creative direction: consider retro terminal, ink wash painting, volcanic ember, arctic aurora, copper patina, deep ocean bioluminescence, desert sunset, northern lights, paper and ink, molten gold, cherry blossom, obsidian and jade, etc.
+- Be bold with color choices`;
+
+async function generateStyleWithGemini(apiKey) {
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: GEMINI_PROMPT }] }],
+      generationConfig: { responseMimeType: 'application/json' },
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    const msg = err?.error?.message || `HTTP ${response.status}`;
+    throw new Error(msg);
+  }
+
+  const data = await response.json();
+  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error(t('geminiEmpty'));
+
+  let parsed;
+  try { parsed = JSON.parse(text); }
+  catch { throw new Error(t('jsonParseError')); }
+
+  // Validate required fields
+  if (!parsed.name || !parsed.variables || !parsed.variables['--accent']) {
+    throw new Error(t('schemaError'));
+  }
+
+  // Assign a unique id
+  parsed.id = 'ai-' + Date.now();
+  if (!parsed.mood) parsed.mood = '创意, 独特, 生动';
+  if (!parsed.description) parsed.description = 'AI Generated Style';
+
+  return parsed;
+}
+
+async function handleGenerateStyle() {
+  const apiKey = document.getElementById('gemini-api-key').value.trim();
+  const errorEl = document.getElementById('api-error');
+  const btn = document.getElementById('ai-generate-btn');
+  errorEl.textContent = '';
+
+  if (!apiKey) {
+    errorEl.textContent = t('noApiKey');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = t('aiGenerating');
+
+  try {
+    const style = await generateStyleWithGemini(apiKey);
+    const existing = loadGeneratedStyles();
+    existing.unshift(style); // newest first
+    saveGeneratedStyles(existing);
+    localStorage.setItem('ppt-gemini-key', apiKey); // save key for convenience
+    applyStyle(style); // auto-apply the new style
+    renderStyleCards();
+  } catch (err) {
+    errorEl.textContent = t('errorPrefix') + err.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = t('aiGenerateBtn');
+  }
+}
+
+// ============================================================
+//  PARSER
+// ============================================================
+function parseContent(content) {
+  const lines = content.split('\n');
+  const results = [];
+  let current = null;
+
+  function flush() {
+    if (current) { results.push(current); current = null; }
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    let m;
+
+    // Each pattern matches both Chinese and English keywords
+    if ((m = line.match(/^(?:封面标题|Cover Title)[：:\s]+(.+)/i))) {
+      flush(); current = { type: 'cover', title: m[1], subtitle: '', date: '' };
+    } else if ((m = line.match(/^(?:副标题|Subtitle)[：:\s]+(.+)/i)) && current?.type === 'cover') {
+      current.subtitle = m[1];
+    } else if ((m = line.match(/^(?:日期|Date)[：:\s]+(.+)/i)) && current?.type === 'cover') {
+      current.date = m[1];
+    } else if ((m = line.match(/^第([一二三四五六七八九十]+(?:十[一二三四五六七八九]?)?)章[：:](.+)/))) {
+      flush(); current = { type: 'title', chapterNum: m[1], chapterTitle: m[2], desc: '' };
+    } else if ((m = line.match(/^Chapter\s+(\d+)[：:\s]+(.+)/i))) {
+      flush(); current = { type: 'title', chapterNum: String(m[1]), chapterTitle: m[2], desc: '', isEnglish: true };
+    } else if ((m = line.match(/^(?:引用|Quote)[：:\s]+(.+)/i))) {
+      flush(); current = { type: 'quote', text: m[1], author: '' };
+    } else if ((m = line.match(/^[-–—]\s*(.+)/)) && current?.type === 'quote') {
+      current.author = m[1];
+    } else if ((m = line.match(/^(?:步骤|Steps)[：:\s]+(.+)/i))) {
+      flush(); current = { type: 'steps', title: m[1], items: [] };
+    } else if ((m = line.match(/^(?:步骤项目|Step Item)[：:\s]+(.+)/i)) && current?.type === 'steps') {
+      current.items.push(m[1]);
+    } else if ((m = line.match(/^(?:结束页信息|End Page)[：:\s]+(.+)/i))) {
+      flush(); current = { type: 'ending', message: m[1], contact: '', qr: '', extra: '' };
+    } else if ((m = line.match(/^(?:联系方式|Contact)[：:\s]+(.+)/i)) && current?.type === 'ending') {
+      current.contact = m[1];
+    } else if ((m = line.match(/^(?:二维码|QR Code)[：:\s]+(.+)/i)) && current?.type === 'ending') {
+      current.qr = m[1];
+    } else if (line !== '') {
+      if (current?.type === 'title') current.desc += (current.desc ? '\n' : '') + line;
+      else if (current?.type === 'quote') current.text += ' ' + line;
+      else if (current?.type === 'ending') current.extra += (current.extra ? '\n' : '') + line;
+    }
+  }
+  flush();
+  return results;
+}
+
+// ============================================================
+//  SLIDE HTML TEMPLATES
+// ============================================================
+function getSlideHTML(slide, index) {
+  const h = escapeHtml;
+  const label = t('slideLabel', index + 1);
+
+  switch (slide.type) {
+    case 'cover':
+      return `<div class="slide slide--cover" data-index="${index}" role="tabpanel" aria-label="${label}: ${t('coverLabel')}">
+  <div class="cover-bg" aria-hidden="true"></div>
+  <div class="cover-grid" aria-hidden="true"></div>
+  <div class="cover-scanline" aria-hidden="true"></div>
+  <div class="corner-tl" aria-hidden="true"></div>
+  <div class="corner-br" aria-hidden="true"></div>
+  <div class="cover-content">
+    ${slide.date ? `<div class="cover-eyebrow">${h(slide.date)}</div>` : ''}
+    <h1 class="cover-title">${h(slide.title)}</h1>
+    ${slide.subtitle ? `<p class="cover-subtitle">${h(slide.subtitle)}</p>` : ''}
+    ${slide.date ? `<div class="cover-date">${h(slide.date)}</div>` : ''}
+  </div>
+  <div class="cover-deco-panel" aria-hidden="true">
+    <div class="cover-deco-lines"></div>
+    <div class="cover-deco-ring"></div>
+    <div class="cover-deco-ring-2"></div>
+    <div class="cover-deco-dot"></div>
+  </div>
+</div>`;
+
+    case 'title': {
+      const numStr = String(chineseNumToArabic(slide.chapterNum)).padStart(2, '0');
+      const descLines = slide.desc
+        ? slide.desc.split('\n').map(l => `<p class="chapter-desc">${h(l)}</p>`).join('') : '';
+      return `<div class="slide slide--title" data-index="${index}" role="tabpanel" aria-label="${label}: ${t('chapterAriaLabel', chineseNumToArabic(slide.chapterNum))}">
+  <div class="title-bg" aria-hidden="true"></div>
+  <div class="chapter-num-large" aria-hidden="true">${numStr}</div>
+  <div class="chapter-badge">${t('chapterBadge', chineseNumToArabic(slide.chapterNum))}</div>
+  <div class="accent-bar"></div>
+  <h2 class="chapter-title">${h(slide.chapterTitle)}</h2>
+  ${descLines}
+</div>`;
+    }
+
+    case 'quote':
+      return `<div class="slide slide--quote" data-index="${index}" role="tabpanel" aria-label="${label}: ${t('quoteLabel')}">
+  <div class="quote-bg" aria-hidden="true"></div>
+  <span class="quote-mark" aria-hidden="true">&ldquo;</span>
+  <blockquote>${h(slide.text.trim())}</blockquote>
+  ${slide.author ? `<cite>${h(slide.author)}</cite>` : ''}
+</div>`;
+
+    case 'steps': {
+      const items = (slide.items || []).map((item, i) =>
+        `<li class="step-item" style="animation-delay:${(i * 0.12 + 0.2).toFixed(2)}s">
+  <span class="step-number">${i + 1}</span>
+  <span class="step-content">${h(item)}</span>
+</li>`).join('\n');
+      return `<div class="slide slide--steps" data-index="${index}" role="tabpanel" aria-label="${label}: ${t('stepsLabel')}">
+  <div class="steps-bg" aria-hidden="true"></div>
+  <div class="steps-header">
+    <div class="steps-label">${t('stepsListLabel')}</div>
+    <div class="steps-title">${h(slide.title)}</div>
+  </div>
+  <ol class="steps-list">${items}</ol>
+</div>`;
+    }
+
+    case 'ending': {
+      const qrEl = slide.qr
+        ? `<img class="qr-image" src="${h(slide.qr)}" alt="QR" />`
+        : `<div class="qr-placeholder" aria-label="QR">QR</div>`;
+      const extras = slide.extra
+        ? slide.extra.split('\n').map(l => `<p class="ending-extra">${h(l)}</p>`).join('') : '';
+      return `<div class="slide slide--ending" data-index="${index}" role="tabpanel" aria-label="${label}: ${t('endingLabel')}">
+  <div class="ending-bg" aria-hidden="true"></div>
+  <div class="ending-ring" aria-hidden="true"></div>
+  <div class="ending-ring-2" aria-hidden="true"></div>
+  <div class="ending-content">
+    <h2 class="ending-message">${h(slide.message)}</h2>
+    <div class="ending-divider" aria-hidden="true"></div>
+    ${slide.contact ? `<p class="ending-contact">${h(slide.contact)}</p>` : ''}
+    ${extras}
+    ${qrEl}
+  </div>
+</div>`;
+    }
+
+    default: return '';
+  }
+}
+
+// ============================================================
+//  RENDERING
+// ============================================================
+function renderSlides() {
+  const container = document.getElementById('slides-container');
+  const navDots = document.getElementById('nav-dots');
+
+  if (state.slidesData.length === 0) {
+    container.innerHTML = `<div class="slide slide--empty active"><div class="empty-hint">${t('emptyHint')}</div></div>`;
+    navDots.innerHTML = '';
+    return;
+  }
+  container.innerHTML = state.slidesData.map((s, i) => getSlideHTML(s, i)).join('\n');
+  renderNavDots();
+  state.currentSlide = Math.min(state.currentSlide, state.slidesData.length - 1);
+  updateSlide(state.currentSlide);
+}
+
+function renderNavDots() {
+  const navDots = document.getElementById('nav-dots');
+  navDots.innerHTML = '';
+  if (state.slidesData.length <= 1) return;
+  state.slidesData.forEach((_, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'nav-dot';
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-label', t('navDotLabel', i + 1));
+    btn.setAttribute('aria-selected', 'false');
+    btn.addEventListener('click', () => updateSlide(i));
+    navDots.appendChild(btn);
+  });
+}
+
+function updateSlide(index) {
+  if (state.slidesData.length === 0) return;
+  index = Math.max(0, Math.min(index, state.slidesData.length - 1));
+  state.currentSlide = index;
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === index));
+  document.querySelectorAll('.nav-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === index);
+    d.setAttribute('aria-selected', i === index ? 'true' : 'false');
+    d.setAttribute('aria-current', i === index ? 'true' : 'false');
+  });
+}
+
+// ============================================================
+//  NAVIGATION
+// ============================================================
+function handleKeyDown(e) {
+  if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') return;
+  if (e.key === 'Escape') { closeStyleModal(); return; }
+  switch (e.key) {
+    case 'ArrowRight': case 'ArrowDown': e.preventDefault(); updateSlide(state.currentSlide + 1); break;
+    case 'ArrowLeft':  case 'ArrowUp':   e.preventDefault(); updateSlide(state.currentSlide - 1); break;
+    case 'Home': e.preventDefault(); updateSlide(0); break;
+    case 'End':  e.preventDefault(); updateSlide(state.slidesData.length - 1); break;
+  }
+}
+
+function onTouchStart(e) {
+  const t = e.touches[0];
+  state.touchStartX = t.clientX; state.touchStartY = t.clientY;
+  state.touchStartTime = Date.now(); state.isHorizontalSwipe = null;
+}
+function onTouchMove(e) {
+  const t = e.touches[0];
+  const dx = t.clientX - state.touchStartX, dy = t.clientY - state.touchStartY;
+  if (state.isHorizontalSwipe === null) state.isHorizontalSwipe = Math.abs(dx) > Math.abs(dy);
+  if (state.isHorizontalSwipe) e.preventDefault();
+}
+function onTouchEnd(e) {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - state.touchStartX, dy = t.clientY - state.touchStartY;
+  const dt = Math.max(1, Date.now() - state.touchStartTime);
+  if (Math.abs(dx) > Math.abs(dy) && (Math.abs(dx) > 50 || Math.abs(dx) / dt > 0.3)) {
+    updateSlide(dx < 0 ? state.currentSlide + 1 : state.currentSlide - 1);
+  }
+  state.isHorizontalSwipe = null;
+}
+
+// ============================================================
+//  RATIO SWITCHING
+// ============================================================
+function setRatio(ratio) {
+  state.ratio = ratio;
+  const viewport = document.getElementById('slide-viewport');
+  const is16x9 = ratio === '16-9';
+
+  // Swap viewport base dimensions
+  viewport.style.width  = is16x9 ? '800px' : '360px';
+  viewport.style.height = is16x9 ? '450px' : '640px';
+  viewport.dataset.ratio = ratio;
+
+  // Update toggle buttons
+  document.querySelectorAll('.ratio-btn').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.ratio === ratio)
+  );
+
+  localStorage.setItem('ppt-ratio', ratio);
+  scaleViewport();
+}
+
+// ============================================================
+//  VIEWPORT SCALING
+// ============================================================
+function scaleViewport() {
+  const area = document.getElementById('preview-area');
+  const viewport = document.getElementById('slide-viewport');
+  const navH = document.getElementById('nav-dots').offsetHeight + 24;
+  const baseW = state.ratio === '16-9' ? 800 : 360;
+  const baseH = state.ratio === '16-9' ? 450 : 640;
+  const scale = Math.max(0.1, Math.min(
+    (area.clientWidth - 48)      / baseW,
+    (area.clientHeight - 48 - navH) / baseH,
+    1
+  ));
+  viewport.style.transform = `scale(${scale})`;
+}
+
+// ============================================================
+//  THEME
+// ============================================================
+function toggleTheme() {
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', state.theme);
+  localStorage.setItem('ppt-theme', state.theme);
+  const btn = document.getElementById('theme-toggle');
+  btn.setAttribute('aria-pressed', state.theme === 'light' ? 'true' : 'false');
+  btn.innerHTML = state.theme === 'light'
+    ? `<span class="btn-icon">🌙</span> ${t('darkMode').replace('🌙 ', '')}`
+    : `<span class="btn-icon">☀️</span> ${t('lightMode').replace('☀️ ', '')}`;
+}
+
+// ============================================================
+//  EXPORT — builds a clean standalone presentation HTML
+// ============================================================
+function exportToFile() {
+  // Capture current CSS variable values (includes any applied custom style)
+  const computed = getComputedStyle(document.documentElement);
+  const varNames = [
+    '--bg-primary','--bg-secondary','--bg-card','--bg-input',
+    '--accent','--accent-2','--accent-glow','--accent-glow-2',
+    '--text-primary','--text-secondary','--text-muted',
+    '--border-color','--border-subtle',
+    '--orb-1','--orb-2','--orb-3','--shadow-slide',
+  ];
+  const cssVars = varNames
+    .map(v => `  ${v}: ${computed.getPropertyValue(v).trim()};`)
+    .join('\n');
+
+  const slidesHtml = document.getElementById('slides-container').innerHTML;
+  const is16x9 = state.ratio === '16-9';
+  const vpW = is16x9 ? 800 : 360;
+  const vpH = is16x9 ? 450 : 640;
+  const vpRadius = is16x9 ? 10 : 16;
+  const ratioAttr = is16x9 ? '16-9' : '9-16';
+
+  const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>演示文稿</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+${cssVars}
+  --font-main: 'Inter', 'Noto Sans SC', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  height: 100%; overflow: hidden;
+  font-family: var(--font-main);
+  background: var(--bg-primary); color: var(--text-primary);
+}
+/* Ambient orbs */
+#ambient-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.orb { position: absolute; border-radius: 50%; filter: blur(90px); animation: orbDrift linear infinite; }
+.orb-1 { width: 500px; height: 500px; top: -15%; left: -10%; background: var(--orb-1); animation-duration: 22s; }
+.orb-2 { width: 350px; height: 350px; top: 40%; right: -8%; background: var(--orb-2); animation-duration: 29s; animation-delay: -11s; }
+.orb-3 { width: 400px; height: 400px; bottom: -12%; left: 35%; background: var(--orb-3); animation-duration: 37s; animation-delay: -18s; }
+@keyframes orbDrift {
+  0%   { transform: translate(0,0); } 25%  { transform: translate(30px,-20px); }
+  50%  { transform: translate(-15px,35px); } 75%  { transform: translate(25px,15px); }
+  100% { transform: translate(0,0); }
+}
+/* Layout */
+#presentation {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  height: 100vh; padding: 1.5rem; gap: 1rem;
+}
+#slide-viewport {
+  width: ${vpW}px; height: ${vpH}px;
+  position: relative; border-radius: ${vpRadius}px;
+  overflow: hidden; box-shadow: var(--shadow-slide);
+  transform-origin: center center; flex-shrink: 0;
+}
+#slides-container { position: relative; width: 100%; height: 100%; }
+/* Nav dots */
+#nav-dots { display: flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; min-height: 16px; }
+.nav-dot { height: 6px; width: 6px; border-radius: 3px; background: var(--text-muted); border: none; cursor: pointer; transition: width 0.3s ease, background 0.3s ease; padding: 0; }
+.nav-dot.active { width: 22px; background: var(--accent); }
+/* Slide base */
+.slide {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  padding: 2.25rem 2rem; opacity: 0; pointer-events: none;
+  transform: translateY(16px); transition: opacity 0.4s ease, transform 0.4s ease;
+  background: var(--bg-primary); font-family: var(--font-main); overflow: hidden;
+}
+.slide.active { opacity: 1; pointer-events: all; transform: translateY(0); }
+/* Cover */
+.slide--cover { background: linear-gradient(160deg, var(--bg-primary) 0%, var(--bg-secondary) 45%, var(--bg-primary) 100%); justify-content: flex-end; padding-bottom: 3rem; }
+.slide--cover .cover-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 30% 20%, var(--accent-glow) 0%, transparent 70%), radial-gradient(ellipse 40% 40% at 80% 70%, var(--accent-glow-2) 0%, transparent 70%); }
+.slide--cover .cover-grid { position: absolute; inset: 0; background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); background-size: 40px 40px; }
+.slide--cover .corner-tl, .slide--cover .corner-br { position: absolute; width: 28px; height: 28px; }
+.slide--cover .corner-tl { top: 1.5rem; left: 1.5rem; border-top: 1.5px solid var(--accent); border-left: 1.5px solid var(--accent); }
+.slide--cover .corner-br { bottom: 1.5rem; right: 1.5rem; border-bottom: 1.5px solid var(--accent); border-right: 1.5px solid var(--accent); }
+.slide--cover .cover-content { position: relative; z-index: 1; }
+.slide--cover .cover-eyebrow { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.slide--cover .cover-eyebrow::before { content: ''; display: inline-block; width: 20px; height: 1px; background: var(--accent); }
+.slide--cover .cover-title { font-size: 2rem; font-weight: 700; line-height: 1.2; color: var(--text-primary); margin-bottom: 0.875rem; text-shadow: 0 0 40px var(--accent-glow); letter-spacing: -0.02em; }
+.slide--cover .cover-subtitle { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
+.slide--cover .cover-date { margin-top: 1.75rem; font-family: var(--font-mono); font-size: 0.62rem; color: var(--accent); letter-spacing: 0.1em; padding: 0.3rem 0.6rem; border: 1px solid var(--border-color); border-radius: 3px; display: inline-block; background: var(--accent-glow); }
+.slide--cover .cover-scanline { position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent), transparent); animation: scanline 4s ease-in-out infinite; opacity: 0; }
+@keyframes scanline { 0% { transform: translateY(0); opacity: 0; } 5% { opacity: 0.6; } 95% { opacity: 0.6; } 100% { transform: translateY(${vpH - 1}px); opacity: 0; } }
+/* Cover deco panel (16:9) */
+.cover-deco-panel { display: none; }
+.cover-deco-lines { position: absolute; inset: 0; background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); background-size: 22px 22px; opacity: 0.6; }
+.cover-deco-ring { width: 180px; height: 180px; border: 1px solid var(--border-color); border-radius: 50%; position: absolute; }
+.cover-deco-ring-2 { width: 115px; height: 115px; border: 1.5px solid var(--accent-glow); border-radius: 50%; position: absolute; }
+.cover-deco-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; position: absolute; box-shadow: 0 0 20px var(--accent), 0 0 6px var(--accent); }
+/* Title */
+.slide--title { justify-content: center; background: linear-gradient(170deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); }
+.slide--title .title-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 80% 50%, var(--accent-glow) 0%, transparent 70%); }
+.slide--title .chapter-num-large { position: absolute; right: -0.5rem; top: 50%; transform: translateY(-50%); font-family: var(--font-mono); font-size: 8rem; font-weight: 700; color: var(--accent); opacity: 0.06; line-height: 1; pointer-events: none; user-select: none; }
+.slide--title .chapter-badge { position: relative; font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.25rem; display: inline-flex; align-items: center; gap: 0.75rem; }
+.slide--title .chapter-badge::after { content: ''; display: block; height: 1px; width: 40px; background: var(--accent); opacity: 0.6; }
+.slide--title .accent-bar { width: 36px; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius: 1px; margin-bottom: 1.25rem; }
+.slide--title .chapter-title { position: relative; font-size: 1.75rem; font-weight: 700; line-height: 1.25; color: var(--text-primary); letter-spacing: -0.02em; margin-bottom: 1.25rem; }
+.slide--title .chapter-desc { font-size: 0.875rem; line-height: 1.75; color: var(--text-secondary); position: relative; }
+/* Quote */
+.slide--quote { justify-content: center; background: linear-gradient(160deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); }
+.slide--quote .quote-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 80% 60% at 20% 60%, var(--accent-glow-2) 0%, transparent 70%); }
+.slide--quote .quote-mark { position: relative; font-size: 5rem; line-height: 1; color: var(--accent); opacity: 0.25; font-family: Georgia, serif; margin-bottom: -1.5rem; display: block; }
+.slide--quote blockquote { position: relative; font-size: 1.05rem; line-height: 1.85; color: var(--text-primary); font-style: italic; border-left: 2px solid var(--accent); padding-left: 1.25rem; margin: 0 0 1.5rem; }
+.slide--quote cite { display: block; font-style: normal; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); padding-left: 1.25rem; }
+.slide--quote cite::before { content: '— '; }
+/* Steps */
+.slide--steps { background: linear-gradient(170deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); }
+.slide--steps .steps-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 90% 10%, var(--accent-glow) 0%, transparent 70%); }
+.slide--steps .steps-header { position: relative; margin-bottom: 1.5rem; }
+.slide--steps .steps-label { font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.4rem; }
+.slide--steps .steps-title { font-size: 1.2rem; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
+.slide--steps .steps-list { position: relative; list-style: none; display: flex; flex-direction: column; gap: 0; }
+.slide--steps .step-item { display: flex; align-items: flex-start; gap: 0.875rem; padding: 0.75rem 0; border-bottom: 1px solid var(--border-subtle); opacity: 0; transform: translateX(-8px); animation: stepIn 0.4s ease forwards; }
+.slide--steps .step-item:last-child { border-bottom: none; }
+@keyframes stepIn { to { opacity: 1; transform: translateX(0); } }
+.slide--steps .step-number { font-family: var(--font-mono); font-size: 0.65rem; color: var(--accent); background: var(--accent-glow); border: 1px solid var(--border-color); border-radius: 3px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+.slide--steps .step-content { font-size: 0.875rem; line-height: 1.5; color: var(--text-primary); }
+/* Ending */
+.slide--ending { justify-content: center; align-items: center; text-align: center; background: linear-gradient(160deg, var(--bg-primary) 0%, var(--bg-secondary) 100%); }
+.slide--ending .ending-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 50% 40%, var(--accent-glow) 0%, transparent 70%), radial-gradient(ellipse 40% 40% at 20% 80%, var(--accent-glow-2) 0%, transparent 70%); }
+.slide--ending .ending-ring { position: absolute; width: 280px; height: 280px; border: 1px solid var(--border-color); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.slide--ending .ending-ring-2 { position: absolute; width: 200px; height: 200px; border: 1px solid var(--border-subtle); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.slide--ending .ending-content { position: relative; z-index: 1; }
+.slide--ending .ending-message { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; letter-spacing: -0.02em; text-shadow: 0 0 40px var(--accent-glow); }
+.slide--ending .ending-divider { width: 32px; height: 1px; background: var(--accent); margin: 0 auto 1rem; opacity: 0.6; }
+.slide--ending .ending-contact { font-family: var(--font-mono); font-size: 0.7rem; color: var(--accent); letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+.slide--ending .ending-extra { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; }
+.slide--ending .qr-placeholder { width: 72px; height: 72px; border: 1px dashed var(--border-color); border-radius: 6px; display: flex; align-items: center; justify-content: center; margin: 1rem auto 0; font-size: 0.55rem; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: 0.05em; }
+.slide--ending .qr-image { width: 72px; height: 72px; object-fit: contain; border-radius: 4px; margin: 1rem auto 0; display: block; }
+/* Entrance animations */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.slide.active .cover-eyebrow  { animation: fadeInUp 0.5s ease 0.10s both; }
+.slide.active .cover-title    { animation: fadeInUp 0.5s ease 0.20s both; }
+.slide.active .cover-subtitle { animation: fadeInUp 0.5s ease 0.30s both; }
+.slide.active .cover-date     { animation: fadeInUp 0.5s ease 0.40s both; }
+.slide.active .chapter-badge  { animation: fadeInUp 0.5s ease 0.05s both; }
+.slide.active .accent-bar     { animation: fadeInUp 0.5s ease 0.10s both; }
+.slide.active .chapter-title  { animation: fadeInUp 0.5s ease 0.15s both; }
+.slide.active .chapter-desc   { animation: fadeInUp 0.5s ease 0.25s both; }
+.slide.active .quote-mark     { animation: fadeInUp 0.5s ease 0.00s both; }
+.slide.active blockquote      { animation: fadeInUp 0.5s ease 0.10s both; }
+.slide.active cite            { animation: fadeInUp 0.5s ease 0.22s both; }
+.slide.active .steps-header   { animation: fadeInUp 0.5s ease 0.05s both; }
+.slide.active .ending-content { animation: fadeInUp 0.5s ease 0.10s both; }
+${is16x9 ? `
+/* 16:9 overrides */
+#slide-viewport .slide { padding: 1.75rem 3.5rem; }
+#slide-viewport .slide--cover { flex-direction: row; align-items: center; justify-content: flex-start; padding: 2.25rem 3.5rem; }
+#slide-viewport .slide--cover .cover-content { flex: 1; }
+#slide-viewport .cover-deco-panel { display: flex; flex: 0 0 36%; align-items: center; justify-content: center; position: relative; height: 100%; }
+#slide-viewport .slide--title .chapter-num-large { font-size: 11rem; }
+#slide-viewport .slide--title .chapter-title { font-size: 2.1rem; }
+#slide-viewport .slide--quote .quote-mark { font-size: 6rem; }
+#slide-viewport .slide--quote blockquote { font-size: 1.2rem; }
+#slide-viewport .slide--steps { padding: 1.75rem 3rem; }
+#slide-viewport .slide--steps .steps-list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 2rem; }
+#slide-viewport .slide--steps .step-item:last-child { border-bottom: none; }
+#slide-viewport .slide--ending .ending-message { font-size: 2rem; }
+#slide-viewport .slide--ending .ending-ring { width: 320px; height: 320px; }
+#slide-viewport .slide--ending .ending-ring-2 { width: 220px; height: 220px; }
+` : ''}
+</style>
+</head>
+<body>
+<div id="ambient-layer" aria-hidden="true">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+<div id="presentation">
+  <div id="slide-viewport" data-ratio="${ratioAttr}">
+    <div id="slides-container">${slidesHtml}</div>
+  </div>
+  <div id="nav-dots" role="tablist" aria-label="幻灯片导航"></div>
+</div>
+\x3cscript>
+(function() {
+  var current = 0;
+  var slides = document.querySelectorAll('.slide');
+  var total = slides.length;
+
+  function goTo(n) {
+    n = Math.max(0, Math.min(n, total - 1));
+    current = n;
+    slides.forEach(function(s, i) { s.classList.toggle('active', i === n); });
+    document.querySelectorAll('.nav-dot').forEach(function(d, i) {
+      d.classList.toggle('active', i === n);
+    });
+  }
+
+  // Build nav dots
+  var dotsEl = document.getElementById('nav-dots');
+  if (total > 1) {
+    slides.forEach(function(_, i) {
+      var btn = document.createElement('button');
+      btn.className = 'nav-dot';
+      btn.setAttribute('aria-label', '第 ' + (i+1) + ' 页');
+      btn.addEventListener('click', function() { goTo(i); });
+      dotsEl.appendChild(btn);
+    });
+  }
+  goTo(0);
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); goTo(current + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); goTo(current - 1); }
+    else if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+    else if (e.key === 'End')  { e.preventDefault(); goTo(total - 1); }
+  });
+
+  // Touch swipe
+  var tx = 0, ty = 0, tt = 0, horiz = null;
+  var vp = document.getElementById('slide-viewport');
+  vp.addEventListener('touchstart', function(e) {
+    tx = e.touches[0].clientX; ty = e.touches[0].clientY; tt = Date.now(); horiz = null;
+  }, { passive: true });
+  vp.addEventListener('touchmove', function(e) {
+    var dx = e.touches[0].clientX - tx, dy = e.touches[0].clientY - ty;
+    if (horiz === null) horiz = Math.abs(dx) > Math.abs(dy);
+    if (horiz) e.preventDefault();
+  }, { passive: false });
+  vp.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+    var dt = Math.max(1, Date.now() - tt);
+    if (Math.abs(dx) > Math.abs(dy) && (Math.abs(dx) > 50 || Math.abs(dx)/dt > 0.3)) {
+      goTo(dx < 0 ? current + 1 : current - 1);
+    }
+  }, { passive: true });
+
+  // Scale to fit window
+  function scale() {
+    var vp = document.getElementById('slide-viewport');
+    var nh = dotsEl.offsetHeight + 24;
+    var s = Math.max(0.1, Math.min(
+      (window.innerWidth - 48) / ${vpW},
+      (window.innerHeight - 48 - nh) / ${vpH},
+      1
+    ));
+    vp.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', scale);
+  scale();
+})();
+\x3c/script>
+</body>
+</html>`;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), { href: url, download: 'presentation.html' });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+// ============================================================
+//  DEFAULT CONTENT
+// ============================================================
+const DEFAULT_CONTENT_ZH = `封面标题：未来之路
+副标题：科技趋势分析报告
+日期：2026 年 3 月
+
+第一章：人工智能的崛起
+AI 正在重塑各行各业的格局
+成为推动社会进步的核心驱动力
+
+引用：人工智能是新时代的通用技术，将深刻改变我们的生产与生活方式
+- 李开复
+
+第二章：量子计算的突破
+量子计算将解决传统算力无法处理的复杂问题
+
+步骤：核心技术路径
+步骤项目：人工智能与大模型
+步骤项目：量子计算
+步骤项目：边缘计算与物联网
+步骤项目：可信数字基础设施
+
+第三章：可持续能源革命
+可再生能源正成为全球新能源支柱
+
+结束页信息：感谢观看
+联系方式：contact@example.com`;
+
+const DEFAULT_CONTENT_EN = `Cover Title: The Road Ahead
+Subtitle: Technology Trends Report
+Date: March 2026
+
+Chapter 1: The Rise of AI
+AI is reshaping industries across the board
+Becoming the core driver of societal progress
+
+Quote: AI is the general-purpose technology of our era — it will profoundly transform how we live and work
+- Kai-Fu Lee
+
+Chapter 2: The Quantum Computing Breakthrough
+Quantum computing will solve problems beyond the reach of classical hardware
+
+Steps: Core Technology Paths
+Step Item: AI and Large Language Models
+Step Item: Quantum Computing
+Step Item: Edge Computing and IoT
+Step Item: Trusted Digital Infrastructure
+
+Chapter 3: The Sustainable Energy Revolution
+Renewable energy is becoming the backbone of the global grid
+
+End Page: Thank You
+Contact: contact@example.com`;
+
+// ============================================================
+//  LANGUAGE TOGGLE
+// ============================================================
+function applyLang() {
+  const html = document.documentElement;
+  html.lang = state.lang === 'en' ? 'en' : 'zh-CN';
+
+  // Brand
+  document.getElementById('brand-name').innerHTML = t('brandName');
+
+  // Toolbar buttons
+  document.getElementById('style-library-btn').innerHTML = t('styleLibrary');
+  document.getElementById('print-btn').innerHTML = `<span class="btn-icon">🖨️</span> ${t('print').replace('🖨️ ', '')}`;
+  document.getElementById('export-btn').innerHTML = `<span class="btn-icon">⬇️</span> ${t('exportHtml').replace('⬇️ ', '')}`;
+  document.getElementById('lang-toggle').textContent = t('langToggle');
+
+  // Ratio buttons
+  document.querySelector('[data-ratio="9-16"]').title = t('portrait');
+  document.querySelector('[data-ratio="16-9"]').title = t('landscape');
+
+  // Theme toggle (re-render to reflect current theme label)
+  const themeBtn = document.getElementById('theme-toggle');
+  if (state.theme === 'light') {
+    themeBtn.innerHTML = `<span class="btn-icon">🌙</span> ${t('darkMode').replace('🌙 ', '')}`;
+  } else {
+    themeBtn.innerHTML = `<span class="btn-icon">☀️</span> ${t('lightMode').replace('☀️ ', '')}`;
+  }
+
+  // Editor panel
+  document.getElementById('editor-label').textContent = t('editorLabel');
+  document.getElementById('content-input').placeholder = t('inputPlaceholder');
+  document.getElementById('generate-btn').textContent = t('generateBtn');
+
+  // Preview aria labels
+  document.getElementById('preview-area').setAttribute('aria-label', t('previewAriaLabel'));
+  document.getElementById('nav-dots').setAttribute('aria-label', t('navAriaLabel'));
+
+  // Modal
+  const modal = document.getElementById('style-modal');
+  modal.setAttribute('aria-label', t('modalAriaLabel'));
+  document.getElementById('modal-title').textContent = t('modalTitle');
+  document.getElementById('style-modal-close').setAttribute('aria-label', t('modalClose'));
+  document.getElementById('api-key-label').textContent = t('apiKeyLabel');
+  document.getElementById('gemini-api-key').placeholder = t('apiKeyPlaceholder');
+  document.getElementById('ai-generate-btn').innerHTML = t('aiGenerateBtn');
+  document.getElementById('builtin-style-label').textContent = t('builtinStyles');
+  document.getElementById('generated-style-label').textContent = t('aiGeneratedStyles');
+  document.getElementById('clear-generated-btn').textContent = t('clearAiStyles');
+  document.getElementById('reset-style-btn').textContent = t('resetStyle');
+
+  // Re-render slides and style cards to update all dynamic text
+  renderSlides();
+  renderStyleCards();
+}
+
+function toggleLang() {
+  state.lang = state.lang === 'zh' ? 'en' : 'zh';
+  localStorage.setItem('ppt-lang', state.lang);
+
+  // Swap default content if the textarea still holds the other language's default
+  const input = document.getElementById('content-input');
+  const zhDefault = DEFAULT_CONTENT_ZH.trim();
+  const enDefault = DEFAULT_CONTENT_EN.trim();
+  const current = input.value.trim();
+  if (current === zhDefault || current === enDefault) {
+    input.value = state.lang === 'en' ? DEFAULT_CONTENT_EN : DEFAULT_CONTENT_ZH;
+  }
+
+  applyLang();
+  generate();
+}
+
+// ============================================================
+//  GENERATE
+// ============================================================
+function generate() {
+  state.slidesData = parseContent(document.getElementById('content-input').value);
+  state.currentSlide = 0;
+  renderSlides();
+  scaleViewport();
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+function init() {
+  // Restore language
+  const savedLang = localStorage.getItem('ppt-lang') || 'zh';
+  state.lang = savedLang;
+
+  // Restore theme
+  const savedTheme = localStorage.getItem('ppt-theme') || 'dark';
+  state.theme = savedTheme;
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  if (savedTheme === 'light') {
+    document.getElementById('theme-toggle').setAttribute('aria-pressed', 'true');
+  }
+
+  // Restore ratio
+  const savedRatio = localStorage.getItem('ppt-ratio') || '9-16';
+  setRatio(savedRatio);
+
+  // Restore active style
+  const savedStyleId = localStorage.getItem('ppt-active-style');
+  if (savedStyleId) {
+    const all = [...BUILTIN_STYLES, ...loadGeneratedStyles()];
+    const found = all.find(s => s.id === savedStyleId);
+    if (found) applyStyle(found);
+  }
+
+  // Restore saved Gemini API key
+  const savedKey = localStorage.getItem('ppt-gemini-key');
+  if (savedKey) document.getElementById('gemini-api-key').value = savedKey;
+
+  // Default content
+  document.getElementById('content-input').value = state.lang === 'en' ? DEFAULT_CONTENT_EN : DEFAULT_CONTENT_ZH;
+
+  // Wire events
+  document.getElementById('generate-btn').addEventListener('click', generate);
+  document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
+  document.getElementById('export-btn').addEventListener('click', exportToFile);
+  document.getElementById('print-btn').addEventListener('click', () => window.print());
+  document.querySelectorAll('.ratio-btn').forEach(btn =>
+    btn.addEventListener('click', () => setRatio(btn.dataset.ratio))
+  );
+  document.getElementById('lang-toggle').addEventListener('click', toggleLang);
+  document.getElementById('style-library-btn').addEventListener('click', openStyleModal);
+  document.getElementById('style-modal-close').addEventListener('click', closeStyleModal);
+  document.getElementById('ai-generate-btn').addEventListener('click', handleGenerateStyle);
+  document.getElementById('reset-style-btn').addEventListener('click', () => { resetStyle(); });
+  document.getElementById('clear-generated-btn').addEventListener('click', () => {
+    saveGeneratedStyles([]);
+    if (state.activeStyleId.startsWith('ai-')) resetStyle();
+    else renderStyleCards();
+  });
+
+  // Close modal on overlay click
+  document.getElementById('style-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeStyleModal();
+  });
+
+  document.addEventListener('keydown', handleKeyDown);
+
+  const viewport = document.getElementById('slide-viewport');
+  viewport.addEventListener('touchstart', onTouchStart, { passive: true });
+  viewport.addEventListener('touchmove', onTouchMove, { passive: false });
+  viewport.addEventListener('touchend', onTouchEnd, { passive: true });
+
+  window.addEventListener('resize', scaleViewport);
+
+  // Apply language (updates all UI text) then generate slides
+  applyLang();
+  generate();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
