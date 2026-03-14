@@ -1,6 +1,18 @@
 # 科技风演示文稿生成器
 
-Inspired by https://www.youtube.com/@xiaotianfotos, video URL: https://youtu.be/7fOf6r9eRs4?si=mhBeWfKQnbH_c1uK
+Inspired by [@xiaotianfotos](https://www.youtube.com/@xiaotianfotos) — [watch the video](https://youtu.be/7fOf6r9eRs4?si=mhBeWfKQnbH_c1uK)
+
+## 🧪 LLM Coding Capability Experiment
+
+This is an agentic development experiment to compare the one-shot coding capabilities of local and cloud LLMs. Each version of this project is built entirely by Claude Code (or equivalent) driven by the respective model — no manual coding.
+
+| Model | Provider | Type | Status |
+|---|---|---|---|
+| **Claude Sonnet 4.6** | Anthropic | Cloud | ✅ Current |
+| Codex-4.5 | OpenAI | Cloud | 🔜 Planned |
+| Qwen3.5-27b | Alibaba | Local | 🔜 Planned |
+| Qwen3.5-35b-a3b | Alibaba | Local (MoE) | 🔜 Planned |
+
 
 基于 AI 的科技风格 PPT 生成器，输出单文件 HTML 格式的演示文稿。
 
