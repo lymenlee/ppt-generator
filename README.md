@@ -1,5 +1,7 @@
 # 科技风演示文稿生成器
 
+Inspired by https://www.youtube.com/@xiaotianfotos, video URL: https://youtu.be/7fOf6r9eRs4?si=mhBeWfKQnbH_c1uK
+
 基于 AI 的科技风格 PPT 生成器，输出单文件 HTML 格式的演示文稿。
 
 ## 功能特点
